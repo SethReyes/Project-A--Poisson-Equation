@@ -41,9 +41,9 @@ while 1e-7 < maxError
     prevU=GS_U;
     % Neumann Boundary Condition 2*Udown+Uleft+Uright
     GS_U(1,2:N-1) = 1/4*(2*GS_U(1+1,2:N-1)+GS_U(1,(2:N-1)-1)+GS_U(1,(2:N-1)+1)+h^2*F(1,2:N-1));
-    for j=2:N-1
-        for i=2:N-1  
-            GS_U(i,j) = (1/4)*(prevU(i+1,j)+prevU(i-1,j)+prevU(i,j+1)+prevU(i,j-1)+(h^2)*F(i,j));
+    for i=2:N-1
+        for j=2:N-1  
+            GS_U(i,j) = (1/4)*(prevU(i+1,j)+GS_U(i-1,j)+prevU(i,j+1)+GS_U(i,j-1)+(h^2)*F(i,j));
         end
     end
     %Error check
@@ -95,14 +95,14 @@ tic;
 SOR_U=U;
 maxError=1;
 SOR_iterations=0;
-
+w=1.979
 while 1e-7 < maxError
     prevU=SOR_U;
     % Neumann Boundary Condition 2*Udown+Uleft+Uright
     SOR_U(1,2:N-1) = 1/4*(2*SOR_U(1+1,2:N-1)+SOR_U(1,(2:N-1)-1)+SOR_U(1,(2:N-1)+1)+h^2*F(1,2:N-1));
-    for j=2:N-1
-        for i=2:N-1  
-        SOR_U(i,j) = (1/4)*(prevU(i+1,j)+prevU(i-1,j)+prevU(i,j+1)+prevU(i,j-1)+(h^2)*F(i,j));
+    for i=2:N-1
+        for j=2:N-1  
+        SOR_U(i,j) = (w/4)*(prevU(i+1,j)+SOR_U(i-1,j)+prevU(i,j+1)+SOR_U(i,j-1)+(h^2)*F(i,j))+(1-w)*prevU(i,j);
         end
     end
     %Error check
@@ -149,3 +149,4 @@ axis square
 box on
 
 SOR_time=toc
+
