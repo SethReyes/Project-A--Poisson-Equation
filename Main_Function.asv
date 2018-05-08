@@ -1,0 +1,69 @@
+%%Poisson Equation
+
+
+
+
+
+
+
+% Domain of Interest: ax < x < bx, ay < y < by
+ax = -pi; bx = pi;
+ay = -pi; by = pi;
+% Grid
+N=5; step = 1/N;
+xLen=2*pi; yLen=2*pi; % Square domain
+
+
+x=linspace(ax,bx,N);
+y=linspace(ay,by,N);
+[xx,yy]=meshgrid(x,-y);
+h=(bx-ax)/(N-1);
+
+%% Boundary Conditions
+U = zeros(N,N);
+fb = (by-yy).^2*cos(pi.*yy/by);
+gb = (by-yy).^2.*yy;
+% Walls of U 
+U(2:N-1,1) = fb(2:N-1,1);
+U(2:N-1,N) = gb(2:N-1,N);
+temp = (by-ay)^2*cos(pi*ay/by) + (xx-ax)/(bx-ax)*((by-ay)^2*ay-(by-ay)^2*cos(pi*ay/by));
+U(N,2:N-1) = temp(N,2:N-1);
+% Corners of U
+U(1,1) = (U(1,2) + U(2,1))/2;
+U(1,N) = (U(1,N-1)+U(2,N))/2;
+U(N,1) = (U(N-1,1)+U(N,2))/2;
+U(N,N) = (U(N,N-1)+U(N-1,N))/2;
+
+F = zeros(N,N);
+F = cos(pi/2*(2.*((xx-ax)/(bx-ax))+1)).*sin(pi.*(yy-ay)/(by-ay));
+
+
+
+U
+%% Guassian Siedel
+maxError=1;
+while 1e-5 < maxError
+    prevU=U;
+    w=2/(
+    % Neumann Boundary Condition 2*Udown+Uleft+Uright
+    U(1,2:N-1) = 1/4*(2*U(1+1,2:N-1)+U(1,(2:N-1)-1)+U(1,(2:N-1)+1)+h^2*F(1,2:N-1));
+    for i=2:N-1
+        for j=2:N-1
+           
+        U(i,j) = (1-w)*prevU(i,j)+(w/4)*( prevU(i+1,j)+prevU(i-1,j)+ prevU(i,j+1)+ prevU(i,j-1) + (h^2)*F(i,j));
+        end
+    end
+    U
+    %Error check
+    maxError=1e-5;
+    for i=2:N-1
+        for j=2:N-1
+            difference=abs(prevU(i,j)-U(i,j));
+            if difference > maxError
+                maxError=difference;
+            end
+        end
+    end
+end
+
+U
