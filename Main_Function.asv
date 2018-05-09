@@ -182,10 +182,10 @@ k.Label.String = 'U';
 axis square
 box on
 
+%% Results
 
-
-fprintf('The amount of time it took to find a solution for U is: %GS_time
-SOR_time
-GS_iterations
-SOR_iterations
-sum(sum(abs(GS_U-SOR_U)))
+fprintf('\n\nThe amount of time it took to find a solution for U using the Gauss-Seidel Method is: %5.4f',GS_time)
+fprintf('\nThe amount of time it took to find a solution for U using the Successive Over Relaxation Method is: %5.4f',SOR_time)
+fprintf('\nThe number of iterations it took to find a solution for U using the Gauss-Seidel Method is: %5.0f',GS_iterations)
+fprintf('\nThe number of iterations it took to find a solution for U using the Successive Over Relaxation Method is: %5.0f',SOR_iterations)
+fprintf('\nThe total sum of the difference between the %nodes of the G-S Method and the SOR Method is: %5.4f\n\n\n',sum(sum(abs(GS_U-SOR_U))));

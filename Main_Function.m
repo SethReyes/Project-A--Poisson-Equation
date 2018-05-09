@@ -125,7 +125,7 @@ SOR_time=toc;
 % Vector field of U using GS
 figure(1)
 set(gcf,'units','normalized','position',[0.2 0.5 0.3 0.32]);
-if N>100
+if N>99
     mesh(xx,yy,GS_U);
 else
     surf(xx,yy,GS_U); % surf gets ugly for N>100
@@ -155,7 +155,7 @@ box on
 % Vector field of U using SOR
 figure(3)
 set(gcf,'units','normalized','position',[0.2 0.1 0.3 0.32]);
-if N>100
+if N>99
     mesh(xx,yy,SOR_U);
 else
     surf(xx,yy,SOR_U);
@@ -182,10 +182,10 @@ k.Label.String = 'U';
 axis square
 box on
 
-
+%% Results
 
 fprintf('\n\nThe amount of time it took to find a solution for U using the Gauss-Seidel Method is: %5.4f',GS_time)
 fprintf('\nThe amount of time it took to find a solution for U using the Successive Over Relaxation Method is: %5.4f',SOR_time)
-fprintf('\nThe number of iterations it took to find a solution for U using the Gauss-Seidel Method is: %7.0f',GS_iterations)
-fprintf('\nThe number of iterations it took to find a solution for U using the Successive Over Relaxation Method is: %7.0f',SOR_iterations)
-fprintf('\nThe total sum of the difference between the nodes of the G-S Method and the SOR Method is: %5.4f\n',sum(sum(abs(GS_U-SOR_U))));
+fprintf('\nThe number of iterations it took to find a solution for U using the Gauss-Seidel Method is: %5.0f',GS_iterations)
+fprintf('\nThe number of iterations it took to find a solution for U using the Successive Over Relaxation Method is: %5.0f',SOR_iterations)
+fprintf('\nThe total sum of the difference between the %1.0f nodes of the G-S Method and the SOR Method is: %5.4f\n\n\n',(N^2),sum(sum(abs(GS_U-SOR_U))));
