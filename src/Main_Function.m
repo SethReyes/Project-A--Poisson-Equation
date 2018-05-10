@@ -19,6 +19,7 @@ clc, clear all, close all
 
 
 %% Prompts and Reboot Check
+watch='n'; % tempvariable 
 GScompleted=0;  % Will run GS computations if set to 0
 reboot='N';     % assumes no reboot
 GS_time=0;     % If rebooted, storeGS_time will be added onto tic toc
