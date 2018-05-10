@@ -8,11 +8,13 @@
 
 %   This code uses two methods to find the solution of the Poisson Equation.
 %   The Gauss-Seidel method and Successive Over Relaxation method is used
-%   and are compared in the end. The code prompts the user for the number 
-%   of steps points the user wants the program to solve. This number 'N'
-%   will be used for both the X direction and the Y direction to form a 2-D 
-%   grid to solve. Next, the user will be prompted to input a value for
-%   the error which will be in the order of 10's.
+%   and are compared in the end. The code prompts the user for the value of
+%   F that the user wants to solve. Next the user is prompted if they want 
+%   to watch an animation of the grid convergence. After that, the number 
+%   of points per direction is requested. Finally, the order of convergence
+%   will be asked from the user. The error will be in the order of 10's.
+%   Check pointing has been implemented in the code. It checkpoints after 
+%   every 1000 iteration during calculations.
 clc, clear all, close all
 
 
@@ -55,7 +57,7 @@ if reboot == 'N' || reboot == 'n'   % If no reboot is required.. Prompts. Else s
     end
     acceptableResponse=0;
     while acceptableResponse == 0
-        watch=input('\n\nWould you like to watch the grid convergence? (Y/N)\nWarning: Selecting "Y" can severely dimiminish performance. Please\n         choose numbers smaller than the recommended values.\n\n','s');
+        watch=input('\n\nWould you like to watch the grid convergence? (Y/N)\nWarning: Selecting "Y" can severely dimiminish performance. Please\n         choose numbers smaller than the recommended values. You will\n         likely not be able to checkpoint if you select "Y".\n\n','s');
         if watch == 'Y' || watch == 'y' || watch == 'N' || watch == 'n'
             acceptableResponse=1;% Response Valid
         else
@@ -253,11 +255,11 @@ axis square
 box on
 
 %% Results
-
+totalErr=sum(sum(abs(GS_U-SOR_U)));%total error of all nodes between Gauss Seidel and SOR
 fprintf('\n\nThe amount of time it took to find a solution for U using the Gauss-Seidel Method is: %5.4f seconds',GS_time)
 fprintf('\nThe amount of time it took to find a solution for U using the Successive Over Relaxation Method is: %5.4f seconds',SOR_time)
 fprintf('\nThe number of iterations it took to find a solution for U using the Gauss-Seidel Method is: %5.0f',GS_iterations)
 fprintf('\nThe number of iterations it took to find a solution for U using the Successive Over Relaxation Method is: %5.0f',SOR_iterations)
-fprintf('\nThe total sum of the difference between the %1.0f nodes of the G-S Method and the SOR Method is: %5.4f\n\n\n',(N^2),sum(sum(abs(GS_U-SOR_U))));
-
+fprintf('\nThe total sum of the difference between the %1.0f nodes of the G-S Method and the SOR Method is: %5.4f',(N^2),totalErr);
+fprintf('\nThe average difference between Gauss-Seidel and SOR method at each node is: %1.8f\n\n\n',totalErr/(N^2))
 delete checkpoint.mat %removes checkpoints if code runs all the way through
