@@ -3,7 +3,6 @@
 %   MECE 5397
 %   Version: APc1-3
 %   Seth Reyes
-%   Student ID: 1223631
 %   5/9/2018
  
 
@@ -41,7 +40,7 @@ if exist('checkpoint.mat', 'file') == 2     %checks for checkpoint from last run
     end    
 end
 if reboot == 'N' || reboot == 'n'   % If no reboot is required.. Prompts. Else start at calculations
-    disp('Select the case to solve the Poisson Equation for?')
+    disp('Select the value of F to solve the Poisson Equation for.')
     disp(' ')
     disp('Case #1: F = cos(pi/2*(2.*((xx-ax)/(bx-ax))+1)).*sin(pi.*(yy-ay)/(by-ay))')
     disp('Case #2: F = 0')
@@ -54,6 +53,16 @@ if reboot == 'N' || reboot == 'n'   % If no reboot is required.. Prompts. Else s
             disp('Input Error') % Response Invalid
         end
     end
+    acceptableResponse=0;
+    while acceptableResponse == 0
+        watch=input('\n\nWould you like to watch the grid convergence? (Y/N)\nWarning: Selecting "Y" can severely dimiminish performance. Please\n         choose numbers smaller than the recommended values.\n\n','s');
+        if watch == 'Y' || watch == 'y' || watch == 'N' || watch == 'n'
+            acceptableResponse=1;% Response Valid
+        else
+            disp('Input Error') % Response Invalid
+        end
+    end
+    disp(' ')
     disp(' ')
     disp('Select the number of steps that you would like to solve for. "N" will be used in the X and Y direction.')
     disp('"N" must be an integer greater than 2, but larger numbers can be quite taxing on the computer.')
@@ -71,7 +80,7 @@ if reboot == 'N' || reboot == 'n'   % If no reboot is required.. Prompts. Else s
             disp('Input Error')% Response Invalid
         end
     end
-    fprintf('Accuracy = 10^-%1.0f\n\n\nLoading...\n\n',Err)
+    fprintf('Accuracy = 10^-%1.0f\n\n(To terminate run, press Ctrl + C)\n\nLoading...\n\n',Err)
 
     %% Boundary Conditions
     % Domain of Interest: ax < x < bx, ay < y < by
@@ -120,6 +129,20 @@ if GScompleted==0 %If Gausss-Seidel completed last run, then skip G-S Calculatio
         if mod(GS_iterations,1000)==0   % Checkpoint: every 1000 iterations, save
             save checkpoint.mat N Err GS_U prevU GS_iterations GS_time maxError h F U xx yy %Save variables...
         end
+        % Animation for Grid Convergence
+        if watch=='y' || watch=='Y'
+            figure(1)
+            set(gcf,'units','normalized','position',[0.2 0.5 0.3 0.32]);        
+            surf(xx,yy,GS_U);         
+            xlabel('x'); ylabel('y'); zlabel('U');
+            title('Solution for U using the Gauss-Seidel Method','fontweight','normal');
+            rotate3d
+            box on
+            axis tight
+            k =  colorbar;
+            k.Label.String = 'U';
+            colormap default;
+        end
     end
 GS_time=toc+storeGS_time; %adds previous run time. If not reboot, then storeGS_time=0
 end
@@ -148,6 +171,20 @@ while 10^-(Err) < maxError
     SOR_time=toc;                           % temporarily saves toc for checkpointing
     if mod(SOR_iterations,1000)==0          % Checkpoint: every 1000 iterations, save
         save checkpoint.mat N Err GS_U GS_iterations GS_time SOR_U prevU SOR_iterations GScompleted maxError h F U xx yy SOR_time %saves variables
+    end
+    % Animation for Grid Convergence
+    if watch == 'y' || watch == 'Y'
+        figure(3)
+        set(gcf,'units','normalized','position',[0.2 0.1 0.3 0.32]);
+        surf(xx,yy,SOR_U);
+        xlabel('x'); ylabel('y'); zlabel('U');
+        title('Solution for U using the Successive Over Relaxation Method','fontweight','normal');
+        rotate3d
+        box on
+        axis tight
+        k =  colorbar;
+        k.Label.String = 'U';
+        colormap default;
     end
 end
 
