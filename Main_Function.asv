@@ -18,10 +18,11 @@ clc, clear all, close all
 
 
 %% Prompts and Reboot Check
-GScompleted=0; % Will run GS computations if set to 0
-reboot='N';    % assumes no reboot
-if exist('checkpoint.mat', 'file') == 2 %checks for checkpoint from last run
-    acceptableResponse=0; %acceptable reponse initialized as false
+GScompleted=0;  % Will run GS computations if set to 0
+reboot='N';     % assumes no reboot
+storeGS_time=0;     % If rebooted, storeGS_time will be added onto tic toc
+if exist('checkpoint.mat', 'file') == 2     %checks for checkpoint from last run
+    acceptableResponse=0;   %acceptable reponse initialized as false
     disp('It has been detected that the previous run has crashed or has been terminated early.')
     while acceptableResponse == 0
         reboot = input('Would you like to start where you left off? (Y/N)\n\n','s'); % self explanatory
@@ -29,15 +30,17 @@ if exist('checkpoint.mat', 'file') == 2 %checks for checkpoint from last run
             load checkpoint.mat %loads in last checkpoint
             disp(' ')
             disp('Loading...')
-            acceptableResponse=1;
+            storeGS_time=GS_time;   % If rebooted, storeGS_time will be added onto tic toc
+            acceptableResponse=1;   % Response Valid
         elseif reboot == 'N' || reboot == 'n'
-            acceptableResponse=1;
+            acceptableResponse=1;   % Response Valid
+            disp(' ')
         else
-            disp('Input Error')
+            disp('Input Error') % Response Invalid
         end
     end    
 end
-if reboot == 'N' || reboot == 'n'
+if reboot == 'N' || reboot == 'n'   % If no reboot is required.. Prompts. Else start at calculations
     disp('Select the case to solve the Poisson Equation for?')
     disp(' ')
     disp('Case #1: F = cos(pi/2*(2.*((xx-ax)/(bx-ax))+1)).*sin(pi.*(yy-ay)/(by-ay))')
@@ -46,9 +49,9 @@ if reboot == 'N' || reboot == 'n'
     while acceptableResponse == 0 %checks for an acceptable reponse to the question
         solveF=input('\nSelecting Case #');
         if solveF == 1 || solveF == 2
-            acceptableResponse=1;
+            acceptableResponse=1;   % Response Valid
         else
-            disp('Input Error')
+            disp('Input Error') % Response Invalid
         end
     end
     disp(' ')
@@ -63,9 +66,9 @@ if reboot == 'N' || reboot == 'n'
     while acceptableResponse == 0 %checks for an acceptable reponse to the question    
         Err=input('\nValue of X = ');
         if isnumeric(Err)
-            acceptableResponse=1;
+            acceptableResponse=1;   % Response Valid
         else
-            disp('Input Error')
+            disp('Input Error')% Response Invalid
         end
     end
     fprintf('Accuracy = 10^-%1.0f\n\n\nLoading...\n\n',Err)
@@ -75,71 +78,67 @@ if reboot == 'N' || reboot == 'n'
     ax = -pi; bx = pi;
     ay = -pi; by = pi;
     % Grid
-    step = 1/N; % Step size
     xLen=2*pi; yLen=2*pi; % Square domain
-    x=linspace(ax,bx,N);
-    y=linspace(ay,by,N);
-    [xx,yy]=meshgrid(x,-y);
-    h=(bx-ax)/(N-1);
-    U = zeros(N,N);
-    fb = (by-yy).^2*cos(pi.*yy/by);
-    gb = (by-yy).^2.*yy;
+    x=linspace(ax,bx,N);    % Creates array from ax to bx
+    y=linspace(ay,by,N);    % Creates array from ay to by
+    [xx,yy]=meshgrid(x,-y); % Creates matrix of above arrays of only that vector
+    h=(bx-ax)/(N-1);    % Step size
+    U = zeros(N,N);     % Empty U matrix
+    fb = (by-yy).^2*cos(pi.*yy/by); %solves fb to be put into the B.C.
+    gb = (by-yy).^2.*yy;            %solves gb to be put into the B.C.
     % Boundaries of U 
     U(1:N-1,1) = fb(1:N-1,1); %Left Boundary Condition
     U(1:N-1,N) = gb(1:N-1,N); %Right Boundary Condition
-    temp = (by-ay)^2*cos(pi*ay/by) + (xx-ax)/(bx-ax)*((by-ay)^2*ay-(by-ay)^2*cos(pi*ay/by));
-    U(N,1:N) = temp(N,1:N); %Bottom BC
-    F = zeros(N,N);
+    temp = (by-ay)^2*cos(pi*ay/by) + (xx-ax)/(bx-ax)*((by-ay)^2*ay-(by-ay)^2*cos(pi*ay/by)); %temp matrix for B.C.
+    U(N,1:N) = temp(N,1:N); %Bottom B.C.
+    F = zeros(N,N); %For F=0
     if solveF==1
-        F = cos(pi/2*(2.*((xx-ax)/(bx-ax))+1)).*sin(pi.*(yy-ay)/(by-ay));
+        F = cos(pi/2*(2.*((xx-ax)/(bx-ax))+1)).*sin(pi.*(yy-ay)/(by-ay)); % For F = prescribed condition
     end
     %% Gauss-Siedel Method
-    GS_U=U;
-    maxError=1;
-    GS_iterations=0;
-end
+    GS_U=U; %Stores U as GS_U without overwriting U
+    maxError=1; % temp initial error
+    GS_iterations=0; % start counting iterations
+end % End of "No Reboot" stage
 
-if GScompleted==0
-    tic;
-    while 10^-(Err) < maxError
-        prevU=GS_U;
-
-        % Filling and Solving U
+if GScompleted==0 %If Gausss-Seidel completed last run, then skip G-S Calculations
+    tic;        %time start
+    while 10^-(Err) < maxError% while error is bigger than prescribed accuracy
+        prevU=GS_U; % Saving Previous U
         for i=2:N-1
             for j=2:N-1  
-                GS_U(i,j) = (1/4)*(prevU(i+1,j)+GS_U(i-1,j)+prevU(i,j+1)+GS_U(i,j-1)+(h^2)*F(i,j));
+                GS_U(i,j) = (1/4)*(prevU(i+1,j)+GS_U(i-1,j)+prevU(i,j+1)+GS_U(i,j-1)+(h^2)*F(i,j)); %GS_U
             end
             % Neumann Boundary Condition 2*Udown+Uleft+Uright
-            GS_U(1,2:N-1) = 1/4*(2*GS_U(1,2:N-1)+GS_U(1,(2:N-1)-1)+GS_U(1,(2:N-1)+1)+h^2*F(1,2:N-1));            
+            GS_U(1,j) = 1/4*(2*GS_U(2,j)+GS_U(1,j-1)+prevU(1,j+1)+h^2*F(1,j));            
         end
         %Error check
-        maxError=max(max(abs(prevU-GS_U)));
-        GS_time=toc;
-        GS_iterations=GS_iterations+1;
-        if mod(GS_iterations,1000)==0
-            save checkpoint.mat N Err GS_U prevU GS_iterations GS_time maxError h F U xx yy
+        maxError=max(max(abs(prevU-GS_U))); % finds the error that is greatest between nodes of previous and new
+        GS_time=toc;    % temporarily saves toc for checkpointing
+        GS_iterations=GS_iterations+1; %iterations count 1 up
+        if mod(GS_iterations,1000)==0   % Checkpoint: every 1000 iterations, save
+            save checkpoint.mat N Err GS_U prevU GS_iterations GS_time maxError h F U xx yy %Save variables...
         end
     end
-
-GS_time=toc;
+GS_time=toc+storeGS_time; %adds previous run time. If not reboot, then storeGS_time=0
 end
-GScompleted=1;
-%% Successive Over Relaxation
-tic;
-SOR_U=U;
-maxError=1;
-SOR_iterations=0;
-w=round(2/(1+sin(h/2)),2);
+GScompleted=1; % If reboot, won't calculate GS again
 
+%% Successive Over Relaxation
+storeSOR_time=SOR_time;
+tic; %start timer for SOR
+SOR_U=U; %Store U for SOR without overwriting U
+maxError=1; % temp false error
+SOR_iterations=0; % SOR iterations
+w=round(2/(1+sin(h/2)),2); % Initial guess for w. Better w correspond with different N values
 while 10^-(Err) < maxError
-    prevU=SOR_U;
-    % Neumann Boundary Condition 2*Udown+Uleft+Uright
-    SOR_U(1,2:N-1) = 1/4*(2*SOR_U(1+1,2:N-1)+SOR_U(1,(2:N-1)-1)+SOR_U(1,(2:N-1)+1)+h^2*F(1,2:N-1));
-    % Filling and Solving U
+    prevU=SOR_U;    %Stores Previous U from last calculated U    
     for i=2:N-1
         for j=2:N-1  
-        SOR_U(i,j) = (w/4)*(prevU(i+1,j)+SOR_U(i-1,j)+prevU(i,j+1)+SOR_U(i,j-1)+(h^2)*F(i,j))+(1-w)*prevU(i,j);
+            SOR_U(i,j) = (w/4)*(prevU(i+1,j)+SOR_U(i-1,j)+prevU(i,j+1)+SOR_U(i,j-1)+(h^2)*F(i,j))+(1-w)*prevU(i,j); %solving for U(i,j) using SOR
         end
+        % Neumann Boundary Condition 2*Udown+Uleft+Uright
+        SOR_U(1,j) = 1/4*(2*SOR_U(2,j)+SOR_U(1,j-1)+prevU(1,j+1)+h^2*F(1,j));        
     end
     %Error check
     maxError=max(max(abs(prevU-SOR_U)));
